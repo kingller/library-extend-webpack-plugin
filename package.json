@@ -2,32 +2,35 @@
   "name": "library-extend-webpack-plugin",
   "version": "1.0.0",
   "description": "A webpack plugin that changes the output to an extended library and add it to an existing global library.",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "keywords": [
+    "library",
+    "extend",
+    "webpack",
+    "plugin",
+    "export",
+    "module"
+  ],
+  "homepage": "https://github.com/kingller/library-extend-webpack-plugin",
+  "bugs": {
+    "url": "https://github.com/kingller/library-extend-webpack-plugin/issues"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/kingller/library-extend-webpack-plugin.git"
   },
-  "keywords": [
-    "webpack",
-    "plugin",
-    "module",
-    "export",
-    "library",
-    "extend"
-  ],
-  "author": "Kingller Tang",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/kingller/library-extend-webpack-plugin/issues"
+  "author": {
+    "name": "Kingller Tang",
+    "url": "https://github.com/kingller"
   },
-  "homepage": "https://github.com/kingller/library-extend-webpack-plugin",
-  "peerDependencies": {
-    "webpack": ">= 4.0.0"
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "webpack-sources": "^1.4.3"
+  },
+  "peerDependencies": {
+    "webpack": ">= 4.0.0"
   }
 }

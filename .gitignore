@@ -1,0 +1,15 @@
+.DS_Store
+.idea/
+node_modules/
+test-result/
+npm-debug.log
+dist/
+.nyc_output
+.tmp
+coverage
+.vscode/
+.sonar/
+.scannerwork/
+sonar-project.properties
+package-lock.json
+.awcache/

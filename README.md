@@ -57,6 +57,14 @@ Function `horn` and `bark` are added to global library `LIB`.
 
 And `LIB.horn` and `LIB.bark` work well.
 
+### Polyfill
+
+If the browser does not support `Object.assign`, you can add `polyfill` as bellow,
+
+```javascript
+new LibraryExtendWebpackPlugin({ polyfill: true })
+```
+
 ### Example of usage on the Browser
 
 For example, the global library file is `lib.js`, 

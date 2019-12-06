@@ -20,7 +20,7 @@ module.exports = class LibraryExtendWebpackPlugin {
      *  -   `{String} fileName`: the file name being evaluated
      *  -   `{Chunk} chunk`: the webpack `chunk` being worked on.
      */
-    constructor(options = { exclude: nonJsFiles }) {
+    constructor(options = { exclude: nonJsFiles, polyfill: false }) {
         this._options = options;
     }
 
@@ -31,7 +31,7 @@ module.exports = class LibraryExtendWebpackPlugin {
 
 function compilationTap(compilation) {
     const libVar = compilation.outputOptions.library;
-    const exclude = this._options.exclude;
+    const exclude = this._options.exclude || nonJsFiles;
 
     if (!libVar) {
         warn("output.library is expected to be set!");
@@ -42,6 +42,40 @@ function compilationTap(compilation) {
         compilation.outputOptions.libraryTarget !== "jsonp"
     ) {
         warn(`output.libraryTarget (${compilation.outputOptions.libraryTarget}) expected to be 'jsonp'!`);
+    }
+
+    let polyfillStr = '';
+    if(this._options.polyfill) {
+        polyfillStr = `if (typeof Object.assign !== 'function') {
+  // Must be writable: true, enumerable: false, configurable: true
+  Object.defineProperty(Object, "assign", {
+    value: function assign(target, varArgs) { // .length of function is 2
+      'use strict';
+      if (target === null || target === undefined) {
+        throw new TypeError('Cannot convert undefined or null to object');
+      }
+      
+      var to = Object(target);
+      
+      for (var index = 1; index < arguments.length; index++) {
+        var nextSource = arguments[index];
+      
+        if (nextSource !== null && nextSource !== undefined) { 
+          for (var nextKey in nextSource) {
+            // Avoid bugs when hasOwnProperty is shadowed
+            if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+              to[nextKey] = nextSource[nextKey];
+            }
+          }
+        }
+      }
+      return to;
+    },
+    writable: true,
+    configurable: true
+  });
+};
+`;
     }
 
     compilation.hooks.optimizeChunkAssets.tapAsync(PLUGIN_NAME, (chunks, done) => {
@@ -55,7 +89,7 @@ function compilationTap(compilation) {
                     // Replace `${libVar}(` to `Object.assign(${libVar},`
                     // and add that file back to the compilation
                     let source = new ReplaceSource(compilation.assets[fileName]);
-                    source.replace(0, libVar.length, `Object.assign(${libVar},`);
+                    source.replace(0, libVar.length, `${polyfillStr}Object.assign(${libVar},`);
                     compilation.assets[fileName] = source;
                 });
             }

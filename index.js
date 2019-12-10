@@ -9,44 +9,46 @@ const nonJsFiles = fileName => !IS_JS_FILE.test(fileName);
  * and add it to an existing global library.
  */
 module.exports = class LibraryExtendWebpackPlugin {
-    /**
-     *
-     * @param {Object} [options]
-     * @param {Function} [options.exclude]
-     *  A callback function to evaluate each output file name and determine if it should be
-     *  excluded from being wrapped with ESM exports. By default, all files whose
-     *  file extension is not `.jsx?` or `.tsx?` will be excluded.
-     *  The provided callback will receive two input arguments:
-     *  -   `{String} fileName`: the file name being evaluated
-     *  -   `{Chunk} chunk`: the webpack `chunk` being worked on.
-     */
-    constructor(options = { exclude: nonJsFiles, polyfill: false }) {
-        this._options = options;
-    }
+  /**
+   *
+   * @param {Object} [options]
+   * @param {Function} [options.exclude]
+   *  A callback function to evaluate each output file name and determine if it should be
+   *  excluded from being wrapped with Object.assign global variable. By default, all files whose
+   *  file extension is not `.jsx?` or `.tsx?` will be excluded.
+   *  The provided callback will receive two input arguments:
+   *  -   `{String} fileName`: the file name being evaluated
+   *  -   `{Chunk} chunk`: the webpack `chunk` being worked on.
+   * @param {Boolean} [options.polyfill]
+   */
+  constructor(options = { exclude: nonJsFiles, polyfill: false }) {
+    this._options = options;
+  }
 
-    apply(compiler) {
-        compiler.hooks.compilation.tap(PLUGIN_NAME, compilationTap.bind(this));
-    }
+  apply(compiler) {
+    compiler.hooks.compilation.tap(PLUGIN_NAME, compilationTap.bind(this));
+  }
 };
 
 function compilationTap(compilation) {
-    const libVar = compilation.outputOptions.library;
-    const exclude = this._options.exclude || nonJsFiles;
+  const libVar = compilation.outputOptions.library;
+  const exclude = this._options.exclude || nonJsFiles;
 
-    if (!libVar) {
-        warn("output.library is expected to be set!");
-    }
+  if (!libVar) {
+    warn("output.library is expected to be set!");
+  }
 
-    if (
-        compilation.outputOptions.libraryTarget &&
-        compilation.outputOptions.libraryTarget !== "jsonp"
-    ) {
-        warn(`output.libraryTarget (${compilation.outputOptions.libraryTarget}) expected to be 'jsonp'!`);
-    }
+  if (
+    compilation.outputOptions.libraryTarget &&
+    compilation.outputOptions.libraryTarget !== "umd" &&
+    compilation.outputOptions.libraryTarget !== "jsonp"
+  ) {
+    warn(`output.libraryTarget (${compilation.outputOptions.libraryTarget}) expected to be 'umd' or 'jsonp'!`);
+  }
 
-    let polyfillStr = '';
-    if(this._options.polyfill) {
-        polyfillStr = `if (typeof Object.assign !== 'function') {
+  let polyfillStr = '';
+  if (this._options.polyfill) {
+    polyfillStr = `if (typeof Object.assign !== 'function') {
   // Must be writable: true, enumerable: false, configurable: true
   Object.defineProperty(Object, "assign", {
     value: function assign(target, varArgs) { // .length of function is 2
@@ -76,25 +78,57 @@ function compilationTap(compilation) {
   });
 };
 `;
-    }
+  }
 
-    compilation.hooks.optimizeChunkAssets.tapAsync(PLUGIN_NAME, (chunks, done) => {
-        chunks.forEach(chunk => {
-            if (chunk.entryModule && chunk.entryModule.buildMeta.providedExports) {
-                chunk.files.forEach(fileName => {
-                    if (exclude && exclude(fileName, chunk)) {
-                        return;
-                    }
+  compilation.hooks.optimizeChunkAssets.tapAsync(PLUGIN_NAME, (chunks, done) => {
+    chunks.forEach(chunk => {
+      if (chunk.entryModule && chunk.entryModule.buildMeta.providedExports) {
+        chunk.files.forEach(fileName => {
+          if (exclude && exclude(fileName, chunk)) {
+            return;
+          }
 
-                    // Replace `${libVar}(` to `Object.assign(${libVar},`
-                    // and add that file back to the compilation
-                    let source = new ReplaceSource(compilation.assets[fileName]);
-                    source.replace(0, libVar.length, `${polyfillStr}Object.assign(${libVar},`);
-                    compilation.assets[fileName] = source;
-                });
+          const originalSource = compilation.assets[fileName];
+          let source = new ReplaceSource(originalSource);
+          if (compilation.outputOptions.libraryTarget === "umd") {
+            replaceUmdSource(source, originalSource, libVar);
+            if (polyfillStr) {
+              source.replace(0, -1, polyfillStr);
             }
+          } else {
+            // Replace `${libVar}(` to `Object.assign(${libVar},`
+            // and add that file back to the compilation
+            source.replace(0, libVar.length, `${polyfillStr}Object.assign(${libVar},`);
+          }
+          compilation.assets[fileName] = source;
         });
-
-        done();
+      }
     });
+
+    done();
+  });
+}
+
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
+function replaceUmdSource(replaceSource, originalSource, libVar) {
+  const sourceCode = originalSource.source();
+  const searchStr = `root["${libVar}"]`;
+  let startIndex = sourceCode.indexOf(searchStr);
+  if (startIndex < 0) {
+    warn("cannot find the string to replace!");
+    return;
+  }
+
+  const replaceStrRegExp = new RegExp(`${escapeRegExp(searchStr)}(\\s*=\\s*([^;]+))`);
+  const matchReplace = sourceCode.match(replaceStrRegExp);
+  if (!matchReplace) {
+    warn("cannot find the string to replace!");
+    return;
+  }
+  const length = matchReplace[0].length;
+  const replaceString = `Object.assign(${searchStr}, ${matchReplace[2]})`;
+  replaceSource.replace(startIndex, startIndex + length - 1, replaceString);
 }

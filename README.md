@@ -32,7 +32,7 @@ Notice the use of `output.library` and `output.libraryTarget`, which indicates a
 
 >   __NOTE__: the value for `output.library` must as same as the existing global library which you want to add to.
 
->   __NOTE__: the value for `output.libraryTarget` must be `jsonp`.
+>   __NOTE__: the value for `output.libraryTarget` must be `umd` or `jsonp`.
 
 
 ## Example
@@ -63,6 +63,18 @@ If the browser does not support `Object.assign`, you can add `polyfill` as bello
 
 ```javascript
 new LibraryExtendWebpackPlugin({ polyfill: true })
+```
+
+## Exclude
+
+If you want to exclude some files, you can add `exclude` as bellow,
+
+```javascript
+new LibraryExtendWebpackPlugin({ 
+    exclude: function (fileName) {
+        return !/\.[tj]s$/i.test(fileName);
+    }
+})
 ```
 
 ## Example of usage on the Browser

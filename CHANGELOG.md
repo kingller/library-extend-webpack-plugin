@@ -6,5 +6,9 @@
 <font color=red><strong>删除</strong></font>
 
 
+# 1.2.0
+1. <font color=blue>增强</font> Support output.libraryTarget `umd`
+
+
 # 1.1.0
 1. <font color=blue>增强</font> Support polyfill `Object.assign`

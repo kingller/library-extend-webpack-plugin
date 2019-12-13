@@ -15,11 +15,14 @@ In your webpack configuration (`webpack.config.js`):
 const LibraryExtendWebpackPlugin = require("library-extend-webpack-plugin");
 
 module.exports = {
-    mode: "production",
-    entry: "index.js",
+    mode: 'production',
+    entry: {
+        'lib.extend': './src/index.js',
+    },
     output: {
-        library: "LIB",
-        libraryTarget: "jsonp"
+        library: 'LIB',
+        libraryTarget: 'jsonp',
+        filename: '[name].js',
     },
     //...
     plugins: [

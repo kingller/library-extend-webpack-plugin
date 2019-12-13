@@ -82,17 +82,13 @@ new LibraryExtendWebpackPlugin({
 For example, the global library file is `lib.js`, 
 and the output js file we generate with this plugin is `lib.extend.js`.
 
+>   __NOTE__: Only `lib.extend.js` is generated here.
+
 In the browser:
 
 ```html
 <script src="https://cdn.xx.com/lib.js"></script>
 <script src="https://cdn.xx.com/lib.extend.js"></script>
-```
-
-If you do not use the function in `lib.extend.js`, you can only add `lib.js` to html
-
-```html
-<script src="https://cdn.xx.com/lib.js"></script>
 ```
 
 If we use `jquery` as an example, it will be

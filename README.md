@@ -85,7 +85,7 @@ new LibraryExtendWebpackPlugin({
 For example, the global library file is `lib.js`, 
 and the output js file we generate with this plugin is `lib.extend.js`.
 
->   __NOTE__: Only `lib.extend.js` is generated here.
+>   __NOTE__: Only `lib.extend.js` is generated in this example.
 
 In the browser:
 

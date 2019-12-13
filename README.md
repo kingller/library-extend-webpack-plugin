@@ -89,6 +89,12 @@ In the browser:
 <script src="https://cdn.xx.com/lib.extend.js"></script>
 ```
 
+If you do not use the function in `lib.extend.js`, you can only add `lib.js` to html
+
+```html
+<script src="https://cdn.xx.com/lib.js"></script>
+```
+
 If we use `jquery` as an example, it will be
 ```html
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>

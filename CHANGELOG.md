@@ -6,6 +6,12 @@
 <font color=red><strong>删除</strong></font>
 
 
+# 1.3.0
+1. <font color=blue>增强</font> 提示文字添加颜色
+2. <font color=blue>增强</font> 添加设置提示类型`options.promptType`
+3. <font color=blue>增强</font> `umd`模式时添加支持可单独使用
+
+
 # 1.2.0
 1. <font color=blue>增强</font> Support output.libraryTarget `umd`
 

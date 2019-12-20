@@ -80,6 +80,19 @@ new LibraryExtendWebpackPlugin({
 })
 ```
 
+## promptType
+
+Its value can be `'warn'` or `'error'`. The default value is `'warn'`. 
+
+`'warn'`: use `console.warn`.  
+`'error'`: use `console.error` and throw an error.  
+
+```javascript
+new LibraryExtendWebpackPlugin({ 
+    promptType: 'error'
+})
+```
+
 ## Example of usage on the Browser
 
 For example, the global library file is `lib.js`, 

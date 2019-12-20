@@ -1,6 +1,10 @@
 const ReplaceSource = require("webpack-sources").ReplaceSource;
 const PLUGIN_NAME = "LibraryExtendWebpackPlugin";
-const warn = msg => console.warn(`[${PLUGIN_NAME}] ${msg}`);
+const warn = msg => console.warn('\033[33m' + `[${PLUGIN_NAME}] ${msg}` + '\033[39m');
+const error = msg => {
+  console.error('\033[31m' + `ERROR: [${PLUGIN_NAME}] ${msg}` + '\033[39m');
+  throw new Error(msg);
+};
 const IS_JS_FILE = /\.[tj]sx?$/i;
 const nonJsFiles = fileName => !IS_JS_FILE.test(fileName);
 
@@ -20,35 +24,31 @@ module.exports = class LibraryExtendWebpackPlugin {
    *  -   `{String} fileName`: the file name being evaluated
    *  -   `{Chunk} chunk`: the webpack `chunk` being worked on.
    * @param {Boolean} [options.polyfill]
+   * @param {String: 'warn' | 'error'} [options.promptType]
    */
-  constructor(options = { exclude: nonJsFiles, polyfill: false }) {
-    this._options = options;
+  constructor(options = {}) {
+    this._options = Object.assign({
+      exclude: nonJsFiles,
+      polyfill: false,
+      promptType: 'warn', // warn || error
+    }, options);
   }
 
   apply(compiler) {
-    compiler.hooks.compilation.tap(PLUGIN_NAME, compilationTap.bind(this));
-  }
-};
-
-function compilationTap(compilation) {
-  const libVar = compilation.outputOptions.library;
-  const exclude = this._options.exclude || nonJsFiles;
-
-  if (!libVar) {
-    warn("output.library is expected to be set!");
+    compiler.hooks.compilation.tap(PLUGIN_NAME, this.compilationTap);
   }
 
-  if (
-    compilation.outputOptions.libraryTarget &&
-    compilation.outputOptions.libraryTarget !== "umd" &&
-    compilation.outputOptions.libraryTarget !== "jsonp"
-  ) {
-    warn(`output.libraryTarget (${compilation.outputOptions.libraryTarget}) expected to be 'umd' or 'jsonp'!`);
-  }
+  compilationTap = (compilation) => {
+    const libVar = compilation.outputOptions.library;
+    const exclude = this._options.exclude || nonJsFiles;
 
-  let polyfillStr = '';
-  if (this._options.polyfill) {
-    polyfillStr = `if (typeof Object.assign !== 'function') {
+    if (!this.checkConfig(compilation)) {
+      return;
+    }
+
+    let polyfillStr = '';
+    if (this._options.polyfill) {
+      polyfillStr = `if (typeof Object.assign !== 'function') {
   // Must be writable: true, enumerable: false, configurable: true
   Object.defineProperty(Object, "assign", {
     value: function assign(target, varArgs) { // .length of function is 2
@@ -61,7 +61,7 @@ function compilationTap(compilation) {
       
       for (var index = 1; index < arguments.length; index++) {
         var nextSource = arguments[index];
-      
+        
         if (nextSource !== null && nextSource !== undefined) { 
           for (var nextKey in nextSource) {
             // Avoid bugs when hasOwnProperty is shadowed
@@ -78,36 +78,64 @@ function compilationTap(compilation) {
   });
 };
 `;
+    }
+
+    compilation.hooks.optimizeChunkAssets.tapAsync(PLUGIN_NAME, (chunks, done) => {
+      chunks.forEach(chunk => {
+        if (chunk.entryModule && chunk.entryModule.buildMeta.providedExports) {
+          chunk.files.forEach(fileName => {
+            if (exclude && exclude(fileName, chunk)) {
+              return;
+            }
+
+            const originalSource = compilation.assets[fileName];
+            let source = new ReplaceSource(originalSource);
+            if (compilation.outputOptions.libraryTarget === "umd") {
+              replaceUmdSource(source, originalSource, libVar);
+              if (polyfillStr) {
+                source.replace(0, -1, polyfillStr);
+              }
+            } else {
+              // Replace `${libVar}(` to `Object.assign(${libVar},`
+              // and add that file back to the compilation
+              source.replace(0, libVar.length, `${polyfillStr}Object.assign(${libVar},`);
+            }
+            compilation.assets[fileName] = source;
+          });
+        }
+      });
+
+      done();
+    });
   }
 
-  compilation.hooks.optimizeChunkAssets.tapAsync(PLUGIN_NAME, (chunks, done) => {
-    chunks.forEach(chunk => {
-      if (chunk.entryModule && chunk.entryModule.buildMeta.providedExports) {
-        chunk.files.forEach(fileName => {
-          if (exclude && exclude(fileName, chunk)) {
-            return;
-          }
+  prompt(msg) {
+    const { promptType } = this._options;
+    const logFuc = promptType === 'error'? error: warn;
+    logFuc(msg);
+  }
 
-          const originalSource = compilation.assets[fileName];
-          let source = new ReplaceSource(originalSource);
-          if (compilation.outputOptions.libraryTarget === "umd") {
-            replaceUmdSource(source, originalSource, libVar);
-            if (polyfillStr) {
-              source.replace(0, -1, polyfillStr);
-            }
-          } else {
-            // Replace `${libVar}(` to `Object.assign(${libVar},`
-            // and add that file back to the compilation
-            source.replace(0, libVar.length, `${polyfillStr}Object.assign(${libVar},`);
-          }
-          compilation.assets[fileName] = source;
-        });
-      }
-    });
+  checkConfig(compilation) {
+    let result = true;
 
-    done();
-  });
-}
+    const libVar = compilation.outputOptions.library;
+    if (!libVar) {
+      this.prompt("output.library is expected to be set!");
+      result = false;
+    }
+
+    if (
+      compilation.outputOptions.libraryTarget &&
+      compilation.outputOptions.libraryTarget !== "umd" &&
+      compilation.outputOptions.libraryTarget !== "jsonp"
+    ) {
+      this.prompt(`output.libraryTarget (${compilation.outputOptions.libraryTarget}) expected to be 'umd' or 'jsonp'!`);
+      result = false;
+    }
+
+    return result;
+  }
+};
 
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -129,6 +157,6 @@ function replaceUmdSource(replaceSource, originalSource, libVar) {
     return;
   }
   const length = matchReplace[0].length;
-  const replaceString = `Object.assign(${searchStr}, ${matchReplace[2]})`;
+  const replaceString = `!${searchStr} && (${searchStr} = {}), Object.assign(${searchStr}, ${matchReplace[2]})`;
   replaceSource.replace(startIndex, startIndex + length - 1, replaceString);
 }

@@ -1,8 +1,8 @@
 const ReplaceSource = require("webpack-sources").ReplaceSource;
 const PLUGIN_NAME = "LibraryExtendWebpackPlugin";
-const warn = msg => console.warn('\033[33m' + `[${PLUGIN_NAME}] ${msg}` + '\033[39m');
+const warn = msg => console.warn(`\u001b[33m[${PLUGIN_NAME}] ${msg}\u001b[39m`);
 const error = msg => {
-  console.error('\033[31m' + `ERROR: [${PLUGIN_NAME}] ${msg}` + '\033[39m');
+  console.error(`\u001b[31mERROR: [${PLUGIN_NAME}] ${msg}\u001b[39m`);
   throw new Error(msg);
 };
 const IS_JS_FILE = /\.[tj]sx?$/i;

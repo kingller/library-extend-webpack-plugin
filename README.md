@@ -21,7 +21,7 @@ module.exports = {
     },
     output: {
         library: 'LIB',
-        libraryTarget: 'jsonp',
+        libraryTarget: 'var',
         filename: '[name].js',
     },
     //...
@@ -35,7 +35,7 @@ Notice the use of `output.library` and `output.libraryTarget`, which indicates a
 
 >   __NOTE__: the value for `output.library` must as same as the existing global library which you want to add to.
 
->   __NOTE__: the value for `output.libraryTarget` must be `umd` or `jsonp`.
+>   __NOTE__: the value for `output.libraryTarget` must be `var` or `umd` or `jsonp`.
 
 
 ## Example
@@ -60,7 +60,10 @@ Function `horn` and `bark` are added to global library `LIB`.
 
 And `LIB.horn` and `LIB.bark` work well.
 
-## Polyfill
+
+## Options
+
+### Polyfill
 
 If the browser does not support `Object.assign`, you can add `polyfill` as bellow,
 
@@ -68,7 +71,7 @@ If the browser does not support `Object.assign`, you can add `polyfill` as bello
 new LibraryExtendWebpackPlugin({ polyfill: true })
 ```
 
-## Exclude
+### Exclude
 
 If you want to exclude some files, you can add `exclude` as bellow,
 
@@ -80,7 +83,7 @@ new LibraryExtendWebpackPlugin({
 })
 ```
 
-## promptType
+### promptType
 
 Its value can be `'warn'` or `'error'`. The default value is `'warn'`. 
 

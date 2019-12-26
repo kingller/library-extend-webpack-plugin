@@ -6,6 +6,10 @@
 <font color=red><strong>删除</strong></font>
 
 
+# 1.3.2
+1. <font color=blue>增强</font> Add support output.libraryTarget `var`
+
+
 # 1.3.1
 1. <font color=blue>增强</font> Use ECMAScript string template for font color
 

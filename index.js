@@ -90,16 +90,21 @@ module.exports = class LibraryExtendWebpackPlugin {
 
             const originalSource = compilation.assets[fileName];
             let source = new ReplaceSource(originalSource);
-            if (compilation.outputOptions.libraryTarget === "umd") {
+            if (compilation.outputOptions.libraryTarget === "var") {
+              // Insert `)` before `;` at the end of source
+              source.insert(source.source().length - 1, ')');
+              // Replace `var ${libVar} =` to `Object.assign(${libVar},`
+              source.replace(0, libVar.length + 5, `${polyfillStr}Object.assign(${libVar},`);
+            } else if (compilation.outputOptions.libraryTarget === "umd") {
               replaceUmdSource(source, originalSource, libVar);
               if (polyfillStr) {
                 source.replace(0, -1, polyfillStr);
               }
             } else {
               // Replace `${libVar}(` to `Object.assign(${libVar},`
-              // and add that file back to the compilation
               source.replace(0, libVar.length, `${polyfillStr}Object.assign(${libVar},`);
             }
+            // add the file source back to the compilation
             compilation.assets[fileName] = source;
           });
         }
@@ -126,10 +131,11 @@ module.exports = class LibraryExtendWebpackPlugin {
 
     if (
       compilation.outputOptions.libraryTarget &&
+      compilation.outputOptions.libraryTarget !== "var" &&
       compilation.outputOptions.libraryTarget !== "umd" &&
       compilation.outputOptions.libraryTarget !== "jsonp"
     ) {
-      this.prompt(`output.libraryTarget (${compilation.outputOptions.libraryTarget}) expected to be 'umd' or 'jsonp'!`);
+      this.prompt(`output.libraryTarget (${compilation.outputOptions.libraryTarget}) expected to be 'var' or 'umd' or 'jsonp'!`);
       result = false;
     }
 

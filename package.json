@@ -1,6 +1,6 @@
 {
   "name": "library-extend-webpack-plugin",
-  "version": "1.3.2",
+  "version": "2.0.0",
   "description": "A webpack plugin that changes the output to an extended library and add it to an existing global library.",
   "keywords": [
     "library",
@@ -28,9 +28,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "webpack-sources": "^1.4.3"
+    "webpack-sources": "^3.2.2"
   },
   "peerDependencies": {
-    "webpack": ">=4.0.0"
+    "webpack": ">=5.0.0"
   }
 }

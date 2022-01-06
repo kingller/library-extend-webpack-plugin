@@ -6,6 +6,10 @@
 <font color=red><strong>删除</strong></font>
 
 
+# 2.0.0
+1. <font color=orange>修改</font> 支持webpack5
+
+
 # 1.3.2
 1. <font color=blue>增强</font> Add support output.libraryTarget `var`
 

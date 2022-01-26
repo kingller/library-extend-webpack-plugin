@@ -7,7 +7,7 @@
 
 
 # 2.1.0
-1. <font color=blue>增强</font> 添加选项`debug`，用于打印添加扩展的文件
+1. <font color=blue>增强</font> 添加选项`debug`，用于打印作为扩展类库的文件
 
 
 # 2.0.0

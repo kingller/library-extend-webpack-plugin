@@ -101,7 +101,7 @@ new LibraryExtendWebpackPlugin({
 
 Its value should be `boolean`. The default value is `false`. 
 
-`true`: It will console log the file to add extend code.  
+`true`: It will console log the file as extended library.  
 
 ```javascript
 new LibraryExtendWebpackPlugin({ 

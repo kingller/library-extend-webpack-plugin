@@ -32,6 +32,7 @@ module.exports = class LibraryExtendWebpackPlugin {
                 exclude: nonJsFiles,
                 polyfill: false,
                 promptType: 'warn', // warn || error
+                debug: false,
             },
             options
         );
@@ -94,7 +95,9 @@ module.exports = class LibraryExtendWebpackPlugin {
                                 continue;
                             }
 
-                            console.log(`[${PLUGIN_NAME}] Add extend to file: `, file);
+                            if (this._options.debug) {
+                                console.log(`[${PLUGIN_NAME}] Add extend to file: `, file);
+                            }
 
                             compilation.updateAsset(file, (originalSource) => {
                                 let source = new ReplaceSource(originalSource);

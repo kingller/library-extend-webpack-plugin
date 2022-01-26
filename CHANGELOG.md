@@ -6,6 +6,10 @@
 <font color=red><strong>删除</strong></font>
 
 
+# 2.1.0
+1. <font color=blue>增强</font> 添加选项`debug`，用于打印添加扩展的文件
+
+
 # 2.0.0
 1. <font color=orange>修改</font> 支持webpack5
 

@@ -96,6 +96,20 @@ new LibraryExtendWebpackPlugin({
 })
 ```
 
+
+### debug
+
+Its value should be `boolean`. The default value is `false`. 
+
+`true`: It will console log the file to add extend code.  
+
+```javascript
+new LibraryExtendWebpackPlugin({ 
+    debug: true
+})
+```
+
+
 ## Example of usage on the Browser
 
 For example, the global library file is `lib.js`, 
